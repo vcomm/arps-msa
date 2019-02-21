@@ -1,7 +1,7 @@
-# msaARPS
+# Adaptive Reverse Proxy Server
 Adaptive Reverse Proxy Server for build Micro Services architecture supporting WebSockets
 
-# Intro
+# Introduction
 A reverse proxy server is a type of proxy server that typically sits behind the firewall in a private network and directs client requests to the appropriate backend server. A reverse proxy provides an additional level of abstraction and control to ensure the smooth flow of network traffic between clients and servers.
 
 Common uses for a reverse proxy server include:
