@@ -1,4 +1,4 @@
-# arps-msa
+# msaARPS
 Adaptive Reverse Proxy Server for build Micro Services architecture supporting WebSockets
 
 # Intro
