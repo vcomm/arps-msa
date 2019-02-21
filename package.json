@@ -1,0 +1,26 @@
+{
+  "name": "msaARPS",
+  "version": "1.0.0",
+  "description": "Adaptive Reverse Proxy Server for build Micro Services architecture supporting WebSockets",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "node test"
+  },
+  "author": "Yakov Liskoff",
+  "license": "MIT",
+  "dependencies": {
+    "dafsm": "git+https://github.com/vcomm/dafsm.git",
+    "ejs": "^2.6.1",
+    "express": "^4.16.4",
+    "jsonfile": "^5.0.0",
+    "lodash": "^4.17.11",
+    "pm2": "^3.2.9",
+    "request": "^2.85.0",
+    "shelljs": "^0.8.3",
+    "uniqid": "^5.0.3",
+    "websocket": "^1.0.28"
+  }
+}
