@@ -1,4 +1,4 @@
-# Adaptive Reverse Proxy Server
+# Reverse Proxy Server
 Adaptive Reverse Proxy Server for build Micro Services architecture supporting WebSockets
 
 # Introduction
