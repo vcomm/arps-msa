@@ -1,0 +1,158 @@
+{
+    "id": "routing",
+    "type": "FSM",
+    "prj": "arp_",
+    "complete": false,
+    "start": {
+        "name": "fn_initialize"
+    },
+    "stop": {
+        "name": "fn_finishing"
+    },
+    "countstates": 4,
+    "states": [
+        {
+            "key": "init",
+            "name": "InitialState",
+            "transitions": [
+                {
+                    "nextstatename": "final",
+                    "triggers": [
+                        {
+                            "name": "ev_outOfService"
+                        }
+                    ],
+                    "effects": [
+                        {
+                            "name": "fn_outOfServiceMsg"
+                        }
+                    ]
+                },
+                {
+                    "nextstatename": "ready",
+                    "triggers": [
+                        {
+                            "name": "ev_checkEnvComplete"
+                        }
+                    ],
+                    "effects": [
+                        {
+                            "name": "fn_updateRouteTbl"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "key": "ready",
+            "name": "readyState",
+            "entries": [
+                {
+                    "name": "fn_routingResponse"
+                }
+            ],
+            "exits": [
+                {
+                    "name": "fn_parsingMsg"
+                }
+            ],
+            "stays": [
+                {
+                    "name": "fn_keepAlive"
+                }
+            ],
+            "transitions": [
+                {
+                    "nextstatename": "ready",
+                    "triggers": [
+                        {
+                            "name": "ev_clientReqConnection"
+                        }
+                    ],
+                    "effects": [
+                        {
+                            "name": "fn_addClentToRouteTbl"
+                        }
+                    ]
+                },
+                {
+                    "nextstatename": "ready",
+                    "triggers": [
+                        {
+                            "name": "ev_clientReqDisconnect"
+                        }
+                    ],
+                    "effects": [
+                        {
+                            "name": "fn_remClentFromRouteTbl"
+                        }
+                    ]
+                },
+                {
+                    "nextstatename": "route",
+                    "triggers": [
+                        {
+                            "name": "ev_recvMsg"
+                        }
+                    ],
+                    "effects": [
+                        {
+                            "name": "fn_extractHeaderMsg"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "key": "route",
+            "name": "routeState",
+            "entries": [
+                {
+                    "name": "fn_inspectRouteHeader"
+                }
+            ],
+            "exits": [
+                {
+                    "name": "fn_prepareRouteHeader"
+                }
+            ],
+            "transitions": [
+                {
+                    "nextstatename": "ready",
+                    "triggers": [
+                        {
+                            "name": "ev_routeIsFalse"
+                        }
+                    ],
+                    "effects": [
+                        {
+                            "name": "fn_prepareErrorMsg"
+                        }
+                    ]
+                },
+                {
+                    "nextstatename": "ready",
+                    "triggers": [
+                        {
+                            "name": "ev_routeIsTrue"
+                        }
+                    ],
+                    "effects": [
+                        {
+                            "name": "fn_prepareResponseMsg"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "key": "final",
+            "name": "FinalState",
+            "entries": [
+                {
+                    "name": "fn_finallyReport"
+                }
+            ]
+        }
+    ]
+}

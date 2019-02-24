@@ -1,0 +1,152 @@
+{
+    "nosql" : {
+        "type":"mongodb",
+        "uri":"mongodb://bigboss:net4ifvv@ds217560.mlab.com:17560/ifvv",
+        "dbname":"ifvv",
+        "collections":[
+            "users"   
+        ]
+    },
+    "messaging" : {
+        "type":"rabbitMQ",
+        "uri":"amqp://xsfmvvme:6MLHKck5alTa3QxQgkFgASQgEE7C5VJz@hound.rmq.cloudamqp.com/xsfmvvme",
+        "host":"hound.rmq.cloudamqp.com",
+        "port":{
+            "reg":1883,
+            "tls":8883
+        },
+        "uname":"xsfmvvme:xsfmvvme",
+        "pswd":"6MLHKck5alTa3QxQgkFgASQgEE7C5VJz"
+    },
+    "wshubqm" : {
+        "type" : "ws", 
+        "uri"  : "localhost",
+        "port" : 8085
+    },
+    "rproxyrouter" : {
+        "port" : 8085,
+        "uri"  : "ws://::8080/",
+        "protocols" : {
+            "media-protocol" : {
+                "type" : "duplex",
+                "producer" : "rproxy",
+                "consumer" : "mbroker",
+                "messages" : [ "invite", "accept", "reject", "connect", "hangup" ]
+            },
+            "traffic-control" : {
+                "type" : "simplex",
+                "producer" : "mbroker",
+                "consumer" : "etraffic",
+                "messages" : [ "start", "stop", "save" ]                
+            },
+            "whiteboard" : {
+                "service"  : "whiteboard",
+                "producer" : "webclient",
+                "consumer" : "whiteboard"
+            }
+        }
+    },
+    "router" : {
+        "port"  : 5000,
+        "uri"   : "ws://::5000/",    
+        "server": "example/mainsrv.js",    
+        "services": {
+            "mediabroker" : {
+                "name"  : "mbroker",
+                "config": {
+                    "script"     : "example/mbroker.js",
+                    "instances"  : 2,
+                    "exec_mode"  : "cluster"
+                }
+            }, 
+            "trafficmon" : {
+                "name"  : "tmonitor",
+                "config": {
+                    "script"     : "example/tmonitor.js",
+                    "instances"  : 1,
+                    "exec_mode"  : "cluster"
+                }
+            }, 
+            "whiteboard" : {
+                "name"  : "wboard",
+                "config": {
+                    "script"     : "example/wboard.js",
+                    "instances"  : 2,
+                    "exec_mode"  : "cluster"
+                }
+            }
+        },
+        "channels" : {
+            "mediactrl": {
+                "publishers": {
+                    "mbroker": {
+                        "type": "service",
+                        "connection": null
+                    },
+                    "any": {
+                        "pswd": "TBD",
+                        "type": "client",
+                        "connections": {}                        
+                    }
+                },
+                "subscribers": {
+                    "mbroker": {
+                        "type": "service",
+                        "connection": null
+                    },
+                    "any": {
+                        "pswd": "TBD",
+                        "type": "client",
+                        "connections": {}                         
+                    }
+                }
+            },
+            "trafficmon": {
+                "publishers": {
+                    "mbroker": {
+                        "type": "service",
+                        "connection": null
+                    },
+                    "tmonitor": {
+                        "type": "service",
+                        "connection": null                        
+                    }
+                },
+                "subscribers": {
+                    "mbroker": {
+                        "type": "service",
+                        "connection": null
+                    },
+                    "tmonitor": {
+                        "type": "service",
+                        "connection": null                        
+                    }
+                }                
+            },
+            "whiteboard": {
+                "publishers": {
+                    "wboard": {
+                        "type": "service",
+                        "connection": null
+                    },
+                    "any": {
+                        "pswd": "TBD",
+                        "type": "client",
+                        "connections": {}                      
+                    }
+                },
+                "subscribers": {
+                    "wboard": {
+                        "type": "service",
+                        "connection": null
+                    },
+                    "any": {
+                        "pswd": "TBD",
+                        "type": "client",
+                        "connections": {}                        
+                    }
+                }
+            }
+        }
+    }
+}

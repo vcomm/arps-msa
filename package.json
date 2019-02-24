@@ -1,5 +1,5 @@
 {
-  "name": "msaARPS",
+  "name": "rps",
   "version": "1.0.0",
   "description": "Adaptive Reverse Proxy Server for build Micro Services architecture supporting WebSockets",
   "main": "index.js",
