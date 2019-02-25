@@ -16,12 +16,19 @@ class asMBroker extends msClient {
         if (message.type === 'utf8') {
             console.log(`=> ${this.asname} Received Message: ${message.utf8Data}`);
             try {
+                if (message.utf8Data === "Welcome") {
+                    connection.sendUTF(JSON.stringify({ head: {
+                        target  : 'rproxy',
+                        origin  : 'mbroker',
+                        command : 'signin'
+                    }}));
+                }
                 //var command = JSON.parse(message.utf8Data);
 
             }
             catch(e) {
                 // do nothing if there's an error.
-                console.log(`Return Error Message`);
+                console.log(`Return Error Message: ${message.utf8Data} `);
                 //connection.sendUTF(message.utf8Data);
             }
         }      
@@ -35,6 +42,15 @@ const server = app.listen(PORT, function () {
     rclient.connect(config.uri);  
     console.log((new Date()) + "Media Broker micro service now running on port", server.address().port);
     setTimeout(()=>{
-        rclient.msgSend({type:'utf8',utf8Data:"The Test"})
+        rclient.msgSend({
+        type:'utf8',
+        utf8Data:JSON.stringify({ 
+          head: {
+            target  : 'route',
+            origin  : 'mbroker',
+            command : 'message'
+          },
+          body: "The Test"
+        })})
     },5000)
 });

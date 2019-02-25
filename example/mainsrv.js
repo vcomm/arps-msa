@@ -58,8 +58,22 @@ class reverseProxy extends rvsProxy {
         console.log((new Date()) + ' wsServer Connection accepted.');
 
         connection.on('message', function(message) {
-            parent.routeMessage(connection.origin,message); 
-            //console.log(`recv Msg from: ${connection.origin} -> ${JSON.stringify(message)}`);
+            try {
+                var command = JSON.parse(message.utf8Data);
+                switch(command.head.target) {
+                    case 'rproxy':
+                        console.log(`RProxy recv: ${message.utf8Data}`); 
+                    break;
+                    case 'route':
+                        parent.routeMessage(connection.origin,message); 
+                    break;
+                    default:
+                        console.log(`Unsupported target: ${command.head.target}`);    
+                }
+            }
+            catch(e) {
+                console.log(`Return Error Message`);
+            }
         });
         
         connection.on('close', function(reasonCode, description) {

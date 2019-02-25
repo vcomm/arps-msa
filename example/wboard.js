@@ -16,48 +16,55 @@ class asWboard extends msClient {
         if (message.type === 'utf8') {
             console.log(`=> ${this.asname} Received Message: ${message.utf8Data}`);
             try {
-                var command = JSON.parse(message.utf8Data);
-
-                switch(command.msg) {
-                    case 'init':
-                        if (!roomConnection[command.room]) {
-                            roomConnection[command.room] = {
-                                canvasCommands: []      
+                if (message.utf8Data === "Welcome") {
+                    connection.sendUTF(JSON.stringify({ head: {
+                        target  : 'rproxy',
+                        origin  : 'wboard',
+                        command : 'signin'
+                    }}));
+                } else {
+                    let command = JSON.parse(message.utf8Data);
+                    switch(command.msg) {
+                        case 'init':
+                            if (!roomConnection[command.room]) {
+                                roomConnection[command.room] = {
+                                    canvasCommands: []      
+                                }
                             }
-                        }
-                    break;
-                    case 'clear':
-                        roomConnection[command.head.roomKey].canvasCommands = [];
-                        connection.sendUTF({
-                            type: type, 
-                            utf8Data: JSON.stringify({
-                                head: {
-                                    service : 'whiteboard',
-                                    type    : 'microservice',
-                                    userId  : 'whiteboard',
-                                    roomKey : command.head.roomKey
-                                },
-                                msg : command.msg,
-                                data: command.data
-                            })
-                        });
-                    break;
-                    case  'drawLine':
-                        roomConnection[command.head.roomKey].canvasCommands.push(command);
-                        connection.sendUTF({
-                            type: type, 
-                            utf8Data: JSON.stringify({
-                                head: {
-                                    service : 'whiteboard',
-                                    type    : 'microservice',
-                                    userId  : 'whiteboard',                                    
-                                    roomKey : command.head.roomKey
-                                },
-                                msg : command.msg,
-                                data: command.data
-                            })
-                        });
-                    break; 
+                        break;
+                        case 'clear':
+                            roomConnection[command.head.roomKey].canvasCommands = [];
+                            connection.sendUTF({
+                                type: type, 
+                                utf8Data: JSON.stringify({
+                                    head: {
+                                        service : 'whiteboard',
+                                        type    : 'microservice',
+                                        userId  : 'whiteboard',
+                                        roomKey : command.head.roomKey
+                                    },
+                                    msg : command.msg,
+                                    data: command.data
+                                })
+                            });
+                        break;
+                        case  'drawLine':
+                            roomConnection[command.head.roomKey].canvasCommands.push(command);
+                            connection.sendUTF({
+                                type: type, 
+                                utf8Data: JSON.stringify({
+                                    head: {
+                                        service : 'whiteboard',
+                                        type    : 'microservice',
+                                        userId  : 'whiteboard',                                    
+                                        roomKey : command.head.roomKey
+                                    },
+                                    msg : command.msg,
+                                    data: command.data
+                                })
+                            });
+                        break; 
+                    }
                 }
             }
             catch(e) {
