@@ -1,9 +1,9 @@
 'use strict';
 
 const msClient =  require('../lib/rproxyClient').rproxyClient;
-const express = require('express');
 const request = require('request');
-const app = express();
+//const express = require('express');
+//const app = express();
 
 let roomConnection = {};
 
@@ -41,10 +41,11 @@ const config = require('../config/rvproxy.json');
 const rclient = new asMBroker(config.uri,'mediactrl','mbroker');
 */
 const URI = 'https://vcomm.herokuapp.com/';
+//const URI = 'http://localhost:5000/';
 const PORT = process.env.PORT || 5002; 
-const server = app.listen(PORT, function () {   
+//const server = app.listen(PORT, function () {   
 
-    console.log((new Date()) + "Media Broker micro service now running on port", server.address().port);
+//    console.log((new Date()) + "Media Broker micro service now running on port", server.address().port);
     setTimeout(()=>{
 
         request(URI+'address', 
@@ -57,6 +58,7 @@ const server = app.listen(PORT, function () {
                         const address = JSON.parse(body);
                         const rclient = new asMBroker(address.uri,'mediactrl','mbroker');
                         rclient.connect(address.uri);  
+                        setInterval(()=>{},100);
                     } else {
                         console.log('statusCode:', response && response.statusCode); 
                     }
@@ -75,4 +77,4 @@ const server = app.listen(PORT, function () {
         })})
 */        
     },5000)
-});
+//});
