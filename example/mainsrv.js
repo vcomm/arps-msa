@@ -176,6 +176,37 @@ app
         })
     })
 
+const routerTable =  require('../config/default.json').rproxyrouter;
+const jsonfile = require('jsonfile');
+const https = require('https');
+const fs = require('fs')
+
 const PORT = process.env.PORT || 5000;    
-const rproxy = new reverseProxy(app,PORT);
-rproxy.startWsServer();
+const rproxy = new reverseProxy();
+
+let server = app.listen(PORT, function () {    
+    console.log((new Date()) + "Server now running on port", server.address());
+    rproxy.startWsServer(server);
+    routerTable.uri = 'ws://' + server.address().address + server.address().port;
+    jsonfile.writeFile('./config/rvproxy.json', routerTable)
+        .then(res => {
+            console.log(`Update Configuration complete: ${routerTable.uri}`)
+        })
+        .catch(error => console.error(error))
+});
+/*
+let server = https.createServer({
+    key: fs.readFileSync('ssl/server.key'),
+    cert: fs.readFileSync('ssl/server.crt')
+}, app)
+.listen(443, function () {
+    console.log((new Date()) + "Server now running on port", server.address());
+    rproxy.startWsServer(server);
+    routerTable.uri = 'ws://' + server.address().address + server.address().port;
+    jsonfile.writeFile('./config/rvproxy.json', routerTable)
+        .then(res => {
+            console.log(`Update Configuration complete: ${routerTable.uri}`)
+        })
+        .catch(error => console.error(error))
+});
+*/
