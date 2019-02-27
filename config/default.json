@@ -20,7 +20,7 @@
     },
     "router" : {
         "port"  : 5000,
-        "uri"   : "http://localhost:5000/",    
+        "uri"   : "https://vcomm.herokuapp.com/",    
         "server": "example/mainsrv.js",    
         "services": {
             "mediabroker" : {
