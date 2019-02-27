@@ -4,10 +4,7 @@ const msClient =  require('../lib/rproxyClient').rproxyClient;
 const request = require('request');
 const opts = require('optimist').argv;
 
-
-let roomConnection = {};
-
-class asMBroker extends msClient {
+class asMonTraffic extends msClient {
 
     constructor(uri,protocol,asname) { 
         super(uri,protocol,asname);
@@ -20,7 +17,7 @@ class asMBroker extends msClient {
                 if (message.utf8Data === "Welcome") {
                     connection.sendUTF(JSON.stringify({ head: {
                         target  : 'rproxy',
-                        origin  : 'mbroker',
+                        origin  : 'tmonitor',
                         command : 'signin'
                     }}));
                 }
@@ -48,7 +45,7 @@ setTimeout(()=>{
                 } else if(response.statusCode === 200) {
                     console.log('body:', body); 
                     const address = JSON.parse(body);
-                    const rclient = new asMBroker(address.uri,'mediactrl','mbroker');
+                    const rclient = new asMonTraffic(address.uri,'trafficmon','tmonitor');
                     rclient.connect(address.uri);  
 
                     setTimeout(()=>{
@@ -57,12 +54,12 @@ setTimeout(()=>{
                             type:'utf8',
                             utf8Data:JSON.stringify({ 
                                 head: {
-                                target  : 'tmonitor',
-                                origin  : 'mbroker',
+                                target  : 'mbroker',
+                                origin  : 'tmonitor',
                                 command : 'message'
                                 },
-                                body: "The Test MBroker => TMonitor"
-                            })})    
+                                body: "The Test TMonitor => MBroker"
+                            })})
                     },5000);
 
                     setInterval(()=>{},100);

@@ -1,8 +1,8 @@
 'use strict';
 
 const msClient =  require('../lib/rproxyClient').rproxyClient;
-const express = require('express');
-const app = express();
+const request = require('request');
+const opts = require('optimist').argv;
 
 let roomConnection = {};
 
@@ -24,6 +24,7 @@ class asWboard extends msClient {
                     }}));
                 } else {
                     let command = JSON.parse(message.utf8Data);
+                    console.log(`wboard: command msg ${command.msg}`);
                     switch(command.msg) {
                         case 'init':
                             if (!roomConnection[command.room]) {
@@ -34,35 +35,26 @@ class asWboard extends msClient {
                         break;
                         case 'clear':
                             roomConnection[command.head.roomKey].canvasCommands = [];
-                            connection.sendUTF({
-                                type: type, 
-                                utf8Data: JSON.stringify({
+                            connection.sendUTF(JSON.stringify({
                                     head: {
-                                        service : 'whiteboard',
-                                        type    : 'microservice',
-                                        userId  : 'whiteboard',
+                                        target  : 'client',
+                                        origin  : 'wboard',
                                         roomKey : command.head.roomKey
                                     },
-                                    msg : command.msg,
-                                    data: command.data
-                                })
-                            });
+                                    msg : command.msg
+                                }));
                         break;
                         case  'drawLine':
                             roomConnection[command.head.roomKey].canvasCommands.push(command);
-                            connection.sendUTF({
-                                type: type, 
-                                utf8Data: JSON.stringify({
+                            connection.sendUTF(JSON.stringify({
                                     head: {
-                                        service : 'whiteboard',
-                                        type    : 'microservice',
-                                        userId  : 'whiteboard',                                    
+                                        target  : 'client',
+                                        origin  : 'wboard',                                   
                                         roomKey : command.head.roomKey
                                     },
                                     msg : command.msg,
                                     data: command.data
-                                })
-                            });
+                                }));
                         break; 
                     }
                 }
@@ -76,10 +68,23 @@ class asWboard extends msClient {
     }
 }
 
-const PORT = require('../config/default.json').rproxyrouter.port+1;
-const config = require('../config/rvproxy.json');
-const rclient = new asWboard(config.uri,'whiteboard','wboard');
-const server = app.listen(PORT, function () {   
-    rclient.connect(config.uri);  
-    console.log((new Date()) + "Whiteboard micro service now running on port", server.address().port);
-});
+console.log(`PARAM: ${opts.uri}`); 
+
+setTimeout(()=>{
+
+    request(opts.uri+'address', 
+            function (error, response, body) {                                        
+                if(error) {
+                    console.log('error:', error); 
+                    return;
+                } else if(response.statusCode === 200) {
+                    console.log('body:', body); 
+                    const address = JSON.parse(body);
+                    const rclient = new asWboard(address.uri,'whiteboard','wboard');
+                    rclient.connect(address.uri);  
+                    setInterval(()=>{},100);                 
+                } else {
+                    console.log('statusCode:', response && response.statusCode); 
+                }
+        });       
+},1000)

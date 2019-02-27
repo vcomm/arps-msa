@@ -18,42 +18,15 @@
         "uname":"xsfmvvme:xsfmvvme",
         "pswd":"6MLHKck5alTa3QxQgkFgASQgEE7C5VJz"
     },
-    "wshubqm" : {
-        "type" : "ws", 
-        "uri"  : "localhost",
-        "port" : 8085
-    },
-    "rproxyrouter" : {
-        "port" : 8085,
-        "uri"  : "ws://::8080/",
-        "protocols" : {
-            "media-protocol" : {
-                "type" : "duplex",
-                "producer" : "rproxy",
-                "consumer" : "mbroker",
-                "messages" : [ "invite", "accept", "reject", "connect", "hangup" ]
-            },
-            "traffic-control" : {
-                "type" : "simplex",
-                "producer" : "mbroker",
-                "consumer" : "etraffic",
-                "messages" : [ "start", "stop", "save" ]                
-            },
-            "whiteboard" : {
-                "service"  : "whiteboard",
-                "producer" : "webclient",
-                "consumer" : "whiteboard"
-            }
-        }
-    },
     "router" : {
         "port"  : 5000,
-        "uri"   : "ws://::5000/",    
+        "uri"   : "http://localhost:5000/",    
         "server": "example/mainsrv.js",    
         "services": {
             "mediabroker" : {
                 "name"  : "mbroker",
                 "config": {
+                    "proc"       : "node",
                     "script"     : "example/mbroker.js",
                     "instances"  : 2,
                     "exec_mode"  : "cluster"
@@ -62,6 +35,7 @@
             "trafficmon" : {
                 "name"  : "tmonitor",
                 "config": {
+                    "proc"       : "node",
                     "script"     : "example/tmonitor.js",
                     "instances"  : 1,
                     "exec_mode"  : "cluster"
@@ -70,6 +44,7 @@
             "whiteboard" : {
                 "name"  : "wboard",
                 "config": {
+                    "proc"       : "node",
                     "script"     : "example/wboard.js",
                     "instances"  : 2,
                     "exec_mode"  : "cluster"

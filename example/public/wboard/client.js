@@ -39,7 +39,7 @@ Whiteboard.prototype.connect = function(header) {
     var url = location.origin.replace(/^http/, 'ws');
     
     var wsCtor = window['MozWebSocket'] ? MozWebSocket : WebSocket;
-    this.socket = new wsCtor(url, [header.type,header.service,header.userId,header.roomKey]);
+    this.socket = new wsCtor(url, [header.type,header.target,header.userId,header.roomKey]);
     this.header = header;
     this.socket.onmessage = this.handleWebsocketMessage.bind(this);
     this.socket.onclose = this.handleWebsocketClose.bind(this);
