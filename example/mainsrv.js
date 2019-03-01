@@ -11,6 +11,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 const rvsProxy =  require('../lib/rproxyServer').rproxyServer;
+const errorRoute = require('../lib/rproxyError').routerError;
+const log4js = require('log4js');
+const logger = log4js.getLogger('mainsrv:proxyServer');
+logger.level = 'trace';
 
 let roomConnection = {};
 
@@ -33,7 +37,7 @@ class reverseProxy extends rvsProxy {
                 connection = request.accept(service, userid);
                 connection.origin = { channel: service, client: userid };
                 roomConnection[service][roomid].connections.push(connection);
-                console.log((new Date()) + ` wsServer Connection accepted client: ${userid} to room: ${roomid}`);
+                logger.trace(` wsServer Connection accepted client: ${userid} to room: ${roomid}`);
                 parent.msgSend('wboard',{
                     type: 'utf8',
                     utf8Data: JSON.stringify({
@@ -42,7 +46,7 @@ class reverseProxy extends rvsProxy {
                     })
                 });
             } else {
-                console.error(`Wrong allocation ${service}, ${roomid}`);
+                logger.error(new errorRoute(`Wrong allocation ${service}, ${roomid}`));
             }
         } else {
             let channel = request.requestedProtocols;
@@ -50,7 +54,7 @@ class reverseProxy extends rvsProxy {
             connection = request.accept(channel[0],service);
             connection.origin = { channel: channel, service: service };
             super.setServiceConnection(channel,service,connection);
-            console.log((new Date()) + ` wsServer Connection accepted microservice: ${service}`);
+            logger.trace(` wsServer Connection accepted microservice: ${service}`);
         }
         
         connection.on('message', function(message) {
@@ -58,14 +62,14 @@ class reverseProxy extends rvsProxy {
                 var command = JSON.parse(message.utf8Data);
                 switch(command.head.target) {
                     case 'rproxy':
-                        console.log(`RProxy recv: ${message.utf8Data}`); 
+                        logger.trace(`MainSrv recv: ${message.utf8Data}`); 
                     break;
                     case 'route':
-                        console.log(`Publish to channel: ${connection.origin.channel}`); 
+                        logger.trace(`Publish to channel: ${connection.origin.channel}`); 
                         parent.routeMessage(connection.origin,message); 
                     break;
                     case 'client':
-                        console.log(`Response to client room: ${command.head.roomKey}`);
+                        logger.trace(`Response to client room: ${command.head.roomKey}`);
                         // rebroadcast command to all clients
                         roomConnection[command.head.origin][command.head.roomKey].connections.forEach(function(destination) {
                             destination.sendUTF(message.utf8Data);
@@ -78,17 +82,18 @@ class reverseProxy extends rvsProxy {
                     break;
                     default: 
                         parent.msgSend(command.head.target,message);
-                        console.log(`Redirect to target: ${command.head.target}`);    
+                        logger.trace(`Redirect to target: ${command.head.target}`);    
                 }
             }
             catch(e) {
-                console.log(`Return Error Message`);
+                logger.error(new errorRoute(`Received Error Message: ${e}`));
             }
         });
         
         connection.on('close', function(reasonCode, description) {
-            parent.delServiceConnection(connection.origin.channel,connection.origin.service);
-            console.log((new Date()) + ` Peer ${connection.origin} disconnected.`);
+            if (connection.origin.service)
+                parent.delServiceConnection(connection.origin.channel,connection.origin.service);
+            logger.trace(` Peer ${JSON.stringify(connection.origin)} disconnected.`);
         });        
 
         connection.sendUTF("Welcome");
@@ -97,19 +102,19 @@ class reverseProxy extends rvsProxy {
 
     runChildMS(ms) {
         const cli = `${ms.proc} ${ms.path} --uri=${ms.uri}`;
-        console.log(`Add Micro Service path: ${cli}`); 
+        logger.trace(`Add Micro Service path: ${cli}`); 
         shell.exec(cli,
           function(code, stdout, stderr) {
-            console.log('Exit code:', code);
-            console.log('Program output:', stdout);
-            console.log('Program stderr:', stderr);
+            logger.error('Exit code:', code);
+            logger.trace('Program output:', stdout);
+            logger.warn('Program stderr:', stderr);
         });        
     }
 
     evMessage(message,connection) {
         
         if (message.type === 'utf8') {
-            console.log(`recv Msg from: ${connection.userid} -> ${JSON.stringify(message.utf8Data)}`);
+            logger.trace(`recv Msg from: ${connection.userid} -> ${JSON.stringify(message.utf8Data)}`);
             try {
                 var command = JSON.parse(message.utf8Data);
                 /* 
@@ -141,9 +146,8 @@ class reverseProxy extends rvsProxy {
                 */
             } catch(e) {
                 // do nothing if there's an error.
+                logger.error(new errorRoute(`Received Error Message: ${e}`));
             }
-
-            //super.msgSend(message.utf8Data.target,message);
         }
     }   
 }
@@ -173,31 +177,23 @@ app
                 connections: []
             }
         }
-        /*
-        rproxy.msgSend('wboard',{
-            type: 'utf8',
-            utf8Data: JSON.stringify({
-                msg: 'init',
-                room: req.params.room
-            })
-        })
-        */
     })
 
 const config =  require('../config/default.json');
+/*
 const jsonfile = require('jsonfile');
 const https = require('https');
 const fs = require('fs')
-
+*/
 const PORT = process.env.PORT || 5000;    
 const rproxy = new reverseProxy();
 
 let server = app.listen(PORT, function () {    
-    console.log((new Date()) + "Server now running on port", server.address());
+    logger.trace("Server now running on port", server.address());
     rproxy.startWsServer(server);
 
     for (const [key, value] of Object.entries(config.router["services"])) {
-        console.info(`Start ${key}`);
+        logger.trace(`Start microservice: ${key}`);
         rproxy.runChildMS({proc:value.config.proc,path:value.config.script,uri:config.router.uri});
     }
 /*    

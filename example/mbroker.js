@@ -4,6 +4,10 @@ const msClient =  require('../lib/rproxyClient').rproxyClient;
 const request = require('request');
 const opts = require('optimist').argv;
 
+const errorRoute = require('../lib/rproxyError').routerError;
+const log4js = require('log4js');
+const logger = log4js.getLogger('mbroker:proxyClient');
+logger.level = 'trace';
 
 let roomConnection = {};
 
@@ -15,7 +19,7 @@ class asMBroker extends msClient {
     
     evMessage(message,connection) {
         if (message.type === 'utf8') {
-            console.log(`=> ${this.asname} Received Message: ${message.utf8Data}`);
+            logger.trace(`=> ${this.asname} Received Message: ${message.utf8Data}`);
             try {
                 if (message.utf8Data === "Welcome") {
                     connection.sendUTF(JSON.stringify({ head: {
@@ -25,28 +29,26 @@ class asMBroker extends msClient {
                     }}));
                 }
                 //var command = JSON.parse(message.utf8Data);
-
             }
             catch(e) {
                 // do nothing if there's an error.
-                console.log(`Return Error Message: ${message.utf8Data} `);
-                //connection.sendUTF(message.utf8Data);
+                logger.error(new errorRoute(`Received Error Message: ${e} `));
             }
         }      
     }
 }
    
-console.log(`PARAM: ${opts.uri}`); 
+//console.log(`PARAM: ${opts.uri}`); 
 
 setTimeout(()=>{
 
     request(opts.uri+'address', 
             function (error, response, body) {                                        
                 if(error) {
-                    console.log('error:', error); 
+                    logger.error('error:', error); 
                     return;
                 } else if(response.statusCode === 200) {
-                    console.log('body:', body); 
+                    logger.trace('body:', body); 
                     const address = JSON.parse(body);
                     const rclient = new asMBroker(address.uri,'mediactrl','mbroker');
                     rclient.connect(address.uri);  
@@ -68,7 +70,7 @@ setTimeout(()=>{
                     setInterval(()=>{},100);
                  
                 } else {
-                    console.log('statusCode:', response && response.statusCode); 
+                    logger.warn('statusCode:', response && response.statusCode); 
                 }
         });       
 },1000)
