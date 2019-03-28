@@ -20,8 +20,8 @@ let roomConnection = {};
 
 class reverseProxy extends rvsProxy {
 
-    constructor(app,port) {
-        super(app,port);
+    constructor(router) {
+        super(router);
         this.name = 'rproxy';
     }
     
