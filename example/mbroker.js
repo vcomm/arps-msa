@@ -1,6 +1,6 @@
 'use strict';
 
-const msClient =  require('../lib/rproxyClient').rproxyClient;
+const msClient = require('../index').rproxyClient;
 const request = require('request');
 const opts = require('optimist').argv;
 
@@ -50,7 +50,7 @@ setTimeout(()=>{
                 } else if(response.statusCode === 200) {
                     logger.trace('body:', body); 
                     const address = JSON.parse(body);
-                    const rclient = new asMBroker(address.uri,'mediactrl','mbroker');
+                    const rclient = new asMBroker(address.uri,opts.protocol,opts.name);
                     rclient.connect(address.uri);  
 
                     setTimeout(()=>{

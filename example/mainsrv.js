@@ -10,7 +10,7 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-const rvsProxy =  require('../lib/rproxyServer').rproxyServer;
+const rvsProxy = require('../index');
 const errorRoute = require('../lib/rproxyError').routerError;
 const log4js = require('log4js');
 const logger = log4js.getLogger('mainsrv:proxyServer');
@@ -18,7 +18,7 @@ logger.level = 'trace';
 
 let roomConnection = {};
 
-class reverseProxy extends rvsProxy {
+class reverseProxy extends rvsProxy.rproxyServer {
 
     constructor(router) {
         super(router);
@@ -186,7 +186,7 @@ const https = require('https');
 const fs = require('fs')
 */
 const PORT = process.env.PORT || 5000;    
-const rproxy = new reverseProxy();
+const rproxy = new reverseProxy(config.router);
 
 let server = app.listen(PORT, function () {    
     logger.trace("Server now running on port", server.address());
@@ -194,7 +194,8 @@ let server = app.listen(PORT, function () {
 
     for (const [key, value] of Object.entries(config.router["services"])) {
         logger.trace(`Start microservice: ${key}`);
-        rproxy.runChildMS({proc:value.config.proc,path:value.config.script,uri:config.router.uri});
+        rproxy.runMicroService(value,config.router.uri);
+        //rproxy.runChildMS({proc:value.config.proc,path:value.config.script,uri:config.router.uri});
     }
 /*    
     routerTable.uri = 'ws://' + server.address().address + server.address().port;

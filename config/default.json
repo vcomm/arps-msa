@@ -20,11 +20,13 @@
     },
     "router" : {
         "port"  : 5000,
-        "uri"   : "https://vcomm.herokuapp.com/",    
+        "heroku_uri"   : "https://vcomm.herokuapp.com/",    
+        "uri"   : "http://localhost:5000/",    
         "server": "example/mainsrv.js",    
         "services": {
             "mediabroker" : {
                 "name"  : "mbroker",
+                "protocol" : "mediactrl",
                 "config": {
                     "proc"       : "node",
                     "script"     : "example/mbroker.js",
@@ -34,6 +36,7 @@
             }, 
             "trafficmon" : {
                 "name"  : "tmonitor",
+                "protocol" : "trafficmon",
                 "config": {
                     "proc"       : "node",
                     "script"     : "example/tmonitor.js",
@@ -43,6 +46,7 @@
             }, 
             "whiteboard" : {
                 "name"  : "wboard",
+                "protocol" : "whiteboard",
                 "config": {
                     "proc"       : "node",
                     "script"     : "example/wboard.js",
