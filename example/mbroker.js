@@ -13,22 +13,23 @@ let roomConnection = {};
 
 class asMBroker extends msClient {
 
-    constructor(uri,protocol,asname) { 
-        super(uri,protocol,asname);
+    constructor(uri,protocol,asname,events) { 
+        super(uri,protocol,asname,events);
     }
     
     evMessage(message,connection) {
         if (message.type === 'utf8') {
             logger.trace(`=> ${this.asname} Received Message: ${message.utf8Data}`);
-            try {
+            try { 
                 if (message.utf8Data === "Welcome") {
                     connection.sendUTF(JSON.stringify({ head: {
                         target  : 'rproxy',
                         origin  : 'mbroker',
                         command : 'signin'
                     }}));
+                } else {
+                    super.evMessage(message);
                 }
-                //var command = JSON.parse(message.utf8Data);
             }
             catch(e) {
                 // do nothing if there's an error.
@@ -50,21 +51,24 @@ setTimeout(()=>{
                 } else if(response.statusCode === 200) {
                     logger.trace('body:', body); 
                     const address = JSON.parse(body);
-                    const rclient = new asMBroker(address.uri,opts.protocol,opts.name);
+                    const rclient = new asMBroker(address.uri,opts.protocol,opts.name,
+                        {
+                            keepalive: (msg) => { return "Alilya" }
+                        });
                     rclient.connect(address.uri);  
 
                     setTimeout(()=>{
-                    /* Send Test Redirect Message*/
-                        rclient.msgSend({
-                            type:'utf8',
-                            utf8Data:JSON.stringify({ 
-                                head: {
+                    /* Send Test Redirect Message*/ 
+                        rclient.request({ 
+                            head: {
                                 target  : 'tmonitor',
                                 origin  : 'mbroker',
-                                command : 'message'
-                                },
-                                body: "The Test MBroker => TMonitor"
-                            })})    
+                                request : 'keepalive'
+                            },
+                            body: "The Test MBroker => TMonitor"
+                        })
+                        .then(result => { logger.trace("FINITE:",result) })
+
                     },5000);
 
                     setInterval(()=>{},100);

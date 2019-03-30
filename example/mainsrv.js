@@ -58,36 +58,7 @@ class reverseProxy extends rvsProxy.rproxyServer {
         }
         
         connection.on('message', function(message) {
-            try {
-                var command = JSON.parse(message.utf8Data);
-                switch(command.head.target) {
-                    case 'rproxy':
-                        logger.trace(`MainSrv recv: ${message.utf8Data}`); 
-                    break;
-                    case 'route':
-                        logger.trace(`Publish to channel: ${connection.origin.channel}`); 
-                        parent.routeMessage(connection.origin,message); 
-                    break;
-                    case 'client':
-                        logger.trace(`Response to client room: ${command.head.roomKey}`);
-                        // rebroadcast command to all clients
-                        roomConnection[command.head.origin][command.head.roomKey].connections.forEach(function(destination) {
-                            destination.sendUTF(message.utf8Data);
-                            if (message.type === 'utf8') {
-                                destination.sendUTF(message.utf8Data);   
-                            } else if (type === 'binary') {
-                                destination.sendBytes(message.binaryData);
-                            }                            
-                        });                        
-                    break;
-                    default: 
-                        parent.msgSend(command.head.target,message);
-                        logger.trace(`Redirect to target: ${command.head.target}`);    
-                }
-            }
-            catch(e) {
-                logger.error(new errorRoute(`Received Error Message: ${e}`));
-            }
+            parent.evMessage(message,connection);
         });
         
         connection.on('close', function(reasonCode, description) {
@@ -112,38 +83,26 @@ class reverseProxy extends rvsProxy.rproxyServer {
     }
 
     evMessage(message,connection) {
-        
         if (message.type === 'utf8') {
-            logger.trace(`recv Msg from: ${connection.userid} -> ${JSON.stringify(message.utf8Data)}`);
             try {
-                var command = JSON.parse(message.utf8Data);
-                /* 
-                MicroService to WebClient
-                head: {
-                    service : 'whiteboard',
-                    type    : 'microservice',
-                    userId  : 'wboard',
-                    roomKey : '...'
-                }
-                WebClient to MicroService
-                head: {
-                    service : 'whiteboard',
-                    type    : 'webclient',
-                    userId  : '...',
-                    roomKey : '...'
-                }                
-                
-                switch(command.head.type) {
-                    case 'microservice':
-                        this.resMs2Wc(command,message.utf8Data); 
+                let command = super.evMessage(message,connection);
+                switch(command.head.target) {
+                    case 'rproxy':
+                        logger.trace(`MainSrv recv: ${message.utf8Data}`); 
                     break;
-                    case 'webclient':
-                        this.reqWc2Ms(command,message.utf8Data);
-                    break;
-                    default:
-                    console.error(`Command type not support: ${command.head.type}`);
+                    case 'client':
+                        logger.trace(`Response to client room: ${command.head.roomKey}`);
+                        // rebroadcast command to all clients
+                        roomConnection[command.head.origin][command.head.roomKey].connections.forEach(function(destination) {
+                            destination.sendUTF(message.utf8Data);
+                            if (message.type === 'utf8') {
+                                destination.sendUTF(message.utf8Data);   
+                            } else if (type === 'binary') {
+                                destination.sendBytes(message.binaryData);
+                            }                            
+                        });                        
+                    break;   
                 }
-                */
             } catch(e) {
                 // do nothing if there's an error.
                 logger.error(new errorRoute(`Received Error Message: ${e}`));

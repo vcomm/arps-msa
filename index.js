@@ -7,5 +7,6 @@ module.exports = require('./lib/rproxyError');
 */
 module.exports = {
     rproxyClient: require('./lib/rproxyClient'),
-    rproxyServer: require('./lib/rproxyServer')
+    rproxyServer: require('./lib/rproxyServer'),
+    rproxyMessage: require('./lib/rproxyMessage')
 }

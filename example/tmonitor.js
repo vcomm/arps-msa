@@ -11,8 +11,8 @@ logger.level = 'trace';
 
 class asMonTraffic extends msClient {
 
-    constructor(uri,protocol,asname) { 
-        super(uri,protocol,asname);
+    constructor(uri,protocol,asname,events) { 
+        super(uri,protocol,asname,events);
     }
     
     evMessage(message,connection) {
@@ -25,9 +25,9 @@ class asMonTraffic extends msClient {
                         origin  : 'tmonitor',
                         command : 'signin'
                     }}));
+                } else {
+                    super.evMessage(message);
                 }
-                //var command = JSON.parse(message.utf8Data);
-
             }
             catch(e) {
                 // do nothing if there's an error.
@@ -49,21 +49,24 @@ setTimeout(()=>{
                 } else if(response.statusCode === 200) {
                     logger.trace('body:', body); 
                     const address = JSON.parse(body);
-                    const rclient = new asMonTraffic(address.uri,opts.protocol,opts.name);
+                    const rclient = new asMonTraffic(address.uri,opts.protocol,opts.name,
+                        {
+                            keepalive: (msg) => { return "Alilya" }
+                        });
                     rclient.connect(address.uri);  
 
                     setTimeout(()=>{
                     /* Send Test Redirect Message*/
-                        rclient.msgSend({
-                            type:'utf8',
-                            utf8Data:JSON.stringify({ 
-                                head: {
+                        rclient.request({ 
+                            head: {
                                 target  : 'mbroker',
                                 origin  : 'tmonitor',
-                                command : 'message'
-                                },
-                                body: "The Test TMonitor => MBroker"
-                            })})
+                                request : 'keepalive'
+                            },
+                            body: "The Test TMonitor => MBroker"
+                        })
+                        .then(result => { logger.trace("FINITE:",result) })
+
                     },5000);
 
                     setInterval(()=>{},100);
