@@ -51,7 +51,7 @@ setTimeout(()=>{
                     const address = JSON.parse(body);
                     const rclient = new asMonTraffic(address.uri,opts.protocol,opts.name,
                         {
-                            keepalive: (msg) => { return "Alilya" }
+                            keepalive: (msg) => { return new Promise((resolve) => resolve("Alilya")) }
                         });
                     rclient.connect(address.uri);  
 
