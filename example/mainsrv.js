@@ -37,14 +37,14 @@ class reverseProxy extends rvsProxy.rproxyServer {
                 connection = request.accept(service, userid);
                 connection.origin = { channel: service, client: userid };
                 roomConnection[service][roomid].connections.push(connection);
-                logger.trace(` wsServer Connection accepted client: ${userid} to room: ${roomid}`);
-                parent.msgSend('wboard',{
+                logger.trace(` wsServer Connection accepted client: ${userid} to room: ${roomid}, service: ${service}`);
+                parent.msgSend({
                     type: 'utf8',
                     utf8Data: JSON.stringify({
                         msg: 'init',
                         room: roomid
                     })
-                });
+                },service);
             } else {
                 logger.error(new errorRoute(`Wrong allocation ${service}, ${roomid}`));
             }
@@ -91,8 +91,10 @@ class reverseProxy extends rvsProxy.rproxyServer {
                         logger.trace(`MainSrv recv: ${message.utf8Data}`); 
                     break;
                     case 'client':
-                        logger.trace(`Response to client room: ${command.head.roomKey}`);
-                        // rebroadcast command to all clients
+                        logger.trace(`Response to all clients room: ${command.head.roomKey}`);
+                        if (!super.routeBundle(roomConnection[command.head.origin][command.head.roomKey],message))
+                            logger.warn(`Bad Room's Clients Bundle: ${JSON.stringify(roomConnection[command.head.origin][command.head.roomKey])}`)
+                        /*
                         roomConnection[command.head.origin][command.head.roomKey].connections.forEach(function(destination) {
                             destination.sendUTF(message.utf8Data);
                             if (message.type === 'utf8') {
@@ -100,7 +102,8 @@ class reverseProxy extends rvsProxy.rproxyServer {
                             } else if (type === 'binary') {
                                 destination.sendBytes(message.binaryData);
                             }                            
-                        });                        
+                        }); 
+                        */                       
                     break;   
                 }
             } catch(e) {
